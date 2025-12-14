@@ -16,12 +16,17 @@ const cleanTranscript = (transcript) => {
 // --- SUMMARIZE ENDPOINT ---
 router.post("/summarize", async (req, res) => {
   try {
-    const apiKey = process.env.GEMINI_API_KEY_SUMMARY;
+    // Support both naming conventions for backward compatibility
+    const apiKey = process.env.GEMINI_API_KEY_SUMMARY || process.env.SUMMARY_API_KEY;
     if (!apiKey) {
-      console.error("GEMINI_API_KEY_SUMMARY is missing");
+      // Only log once to prevent spam - use a flag
+      if (!router._summaryKeyWarned) {
+        console.error("⚠️  GEMINI_API_KEY_SUMMARY or SUMMARY_API_KEY is missing. Summary feature will not work.");
+        router._summaryKeyWarned = true;
+      }
       return res
         .status(500)
-        .json({ error: "Server configuration error: Missing API Key" });
+        .json({ error: "Server configuration error: Missing API Key. Please set GEMINI_API_KEY_SUMMARY or SUMMARY_API_KEY in your .env file." });
     }
 
     const { transcript } = req.body;
@@ -61,6 +66,20 @@ router.post("/summarize", async (req, res) => {
     res.json({ summary });
   } catch (error) {
     console.error("Gemini Summary Error:", error);
+    
+    // Check for specific API key errors
+    if (error.status === 403 || (error.message && error.message.includes("leaked"))) {
+      return res.status(403).json({ 
+        error: "Error." 
+      });
+    }
+    
+    if (error.status === 401 || (error.message && error.message.includes("API key"))) {
+      return res.status(401).json({ 
+        error: "Invalid API key. Please check your GEMINI_API_KEY_SUMMARY in your .env file." 
+      });
+    }
+    
     res
       .status(500)
       .json({ error: "Failed to generate summary. Please try again." });
@@ -70,12 +89,17 @@ router.post("/summarize", async (req, res) => {
 // --- QUIZ ENDPOINT ---
 router.post("/quiz", async (req, res) => {
   try {
-    const apiKey = process.env.GEMINI_API_KEY_QUIZ;
+    // Support both naming conventions for backward compatibility
+    const apiKey = process.env.GEMINI_API_KEY_QUIZ || process.env.QUIZ_API_KEY;
     if (!apiKey) {
-      console.error("GEMINI_API_KEY_QUIZ is missing");
+      // Only log once to prevent spam - use a flag
+      if (!router._quizKeyWarned) {
+        console.error("⚠️  GEMINI_API_KEY_QUIZ or QUIZ_API_KEY is missing. Quiz feature will not work.");
+        router._quizKeyWarned = true;
+      }
       return res
         .status(500)
-        .json({ error: "Server configuration error: Missing API Key" });
+        .json({ error: "Server configuration error: Missing API Key. Please set GEMINI_API_KEY_QUIZ or QUIZ_API_KEY in your .env file." });
     }
 
     const { transcript, summary, difficulty = "medium" } = req.body;
@@ -136,6 +160,20 @@ router.post("/quiz", async (req, res) => {
     res.json({ quiz });
   } catch (error) {
     console.error("Gemini Quiz Error:", error);
+    
+    // Check for specific API key errors
+    if (error.status === 403 || (error.message && error.message.includes("leaked"))) {
+      return res.status(403).json({ 
+        error: "API key has been reported as leaked. Please generate a new API key from Google AI Studio (https://aistudio.google.com/apikey) and update GEMINI_API_KEY_QUIZ in your .env file." 
+      });
+    }
+    
+    if (error.status === 401 || (error.message && error.message.includes("API key"))) {
+      return res.status(401).json({ 
+        error: "Invalid API key. Please check your GEMINI_API_KEY_QUIZ in your .env file." 
+      });
+    }
+    
     res
       .status(500)
       .json({ error: "Failed to generate quiz. Please try again." });

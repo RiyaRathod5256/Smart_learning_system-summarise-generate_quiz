@@ -16,7 +16,7 @@ import Learning from "./pages/MyLearning/Learning";
 import VideoPlayer from "./pages/Playlist/VideoPlayer";
 import PlaylistView from "./pages/Playlist/PlaylistView";
 import Player from "./pages/VideoPlayer/Player"; // <-- new fancy player
-import Contact from "./pages/Contact/Contact";
+
 
 import About from "./pages/About/About";
 
@@ -70,7 +70,6 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/learning" element={<Learning />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/contact" element={<Contact />} />
           <Route path="/about" element={<About />} />
         </Routes>
       </div>

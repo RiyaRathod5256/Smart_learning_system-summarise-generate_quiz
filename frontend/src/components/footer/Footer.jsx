@@ -22,12 +22,6 @@ const Footer = () => {
           <Link to="/terms" className="hover:text-indigo-600 transition-colors">
             Terms
           </Link>
-          <Link
-            to="/contact"
-            className="hover:text-indigo-600 transition-colors"
-          >
-            Contact
-          </Link>
         </div>
       </div>
     </footer>

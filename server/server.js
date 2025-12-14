@@ -24,6 +24,48 @@ const app = express();
 // ✅ Connect to MongoDB
 connectDB();
 
+// ✅ Validate critical environment variables at startup
+function validateEnvVars() {
+  const warnings = [];
+  const errors = [];
+
+  // Critical for AI features
+  if (!process.env.GEMINI_API_KEY_SUMMARY && !process.env.SUMMARY_API_KEY) {
+    warnings.push("⚠️  GEMINI_API_KEY_SUMMARY or SUMMARY_API_KEY is missing - Summary feature disabled");
+  }
+  if (!process.env.GEMINI_API_KEY_QUIZ && !process.env.QUIZ_API_KEY) {
+    warnings.push("⚠️  GEMINI_API_KEY_QUIZ or QUIZ_API_KEY is missing - Quiz feature disabled");
+  }
+
+  // Critical for YouTube features
+  if (!process.env.YOUTUBE_API_KEY) {
+    warnings.push("⚠️  YOUTUBE_API_KEY is missing - Video details may not work");
+  }
+
+  // Critical for app functionality
+  if (!process.env.MONGO_URI) {
+    errors.push("❌ MONGO_URI is missing - Database connection will fail");
+  }
+  if (!process.env.SESSION_SECRET) {
+    errors.push("❌ SESSION_SECRET is missing - Authentication will fail");
+  }
+
+  if (warnings.length > 0) {
+    console.log("\n📋 Environment Variable Warnings:");
+    warnings.forEach(w => console.log(`   ${w}`));
+  }
+
+  if (errors.length > 0) {
+    console.error("\n❌ Critical Environment Variable Errors:");
+    errors.forEach(e => console.error(`   ${e}`));
+    console.error("\n⚠️  Server will start but some features may not work.\n");
+  } else if (warnings.length === 0) {
+    console.log("✅ All environment variables are configured correctly.\n");
+  }
+}
+
+validateEnvVars();
+
 // Middleware
 app.use(
   cors({
